@@ -20,7 +20,7 @@ i2cButton.addEventListener('click', (event) => {
 
 
 const piCommand = async (args) => {
-  const url = '/';
+  const url = '/piHMI';
   const data = JSON.stringify({command: args.command});
   try {
     const response = await fetch(url, {
