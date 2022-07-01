@@ -1,12 +1,12 @@
-const piRebootButton = document.getElementById('pi-reboot-button');
+const camRestartButton = document.getElementById('cam-restart-button');
 
-piRebootButton.addEventListener('click', (event) => {
-  console.log('pi reboot button clicked');
-  piCommand({command:'pi-reboot'});
+camRestartButton.addEventListener('click', (event) => {
+  console.log('camera restart button clicked');
+  cameraCommand({command:'cam-restart'});
 });
 
-const piCommand = async (args) => {
-  const url = '/piHMI';
+const cameraCommand = async (args) => {
+  const url = '/cameraHMI';
   const data = JSON.stringify({command: args.command});
   try {
     const response = await fetch(url, {

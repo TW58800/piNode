@@ -1,13 +1,8 @@
-const i2cButton = document.getElementById('i2c-button');
 const panLeft = document.getElementById('pan-left');
 const panRight = document.getElementById('pan-right');
 const tiltUp = document.getElementById('tilt-up');
 const tiltDown = document.getElementById('tilt-down');
-
-i2cButton.addEventListener('click', (event) => {
-  console.log('i2c button clicked');
-  motorRead({address: 40, register: 4, length: 2});
-});
+const panHome = document.getElementById('pan-home');
 
 panLeft.addEventListener('click', (event) => {
   console.log('pan left button clicked');
@@ -27,6 +22,11 @@ tiltUp.addEventListener('click', (event) => {
 tiltDown.addEventListener('click', (event) => {
   console.log('tilt down button clicked');
   motorWrite({address: 41, register: 6, data: [(65536-200) >> 8, (65536-200) & 255]});
+});
+
+panHome.addEventListener('click', (event) => {
+  console.log('pan home button clicked');
+  motorWrite({address: 40, register: 5, data: [(30000) >> 8, (30000) & 255]});
 });
 
 const motorRead = async (args) => {

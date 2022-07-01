@@ -6,7 +6,6 @@ const url = require("url");
 var exec = require('child_process').exec;
 const i2c = require('i2c-bus');
 
-
 const i2cWrite = (address, register, data) => {
   return new Promise ((resolve, reject) => {
     const buf = Buffer.from(data); 
@@ -34,16 +33,6 @@ const i2cWrite = (address, register, data) => {
 
 const i2cRead = (address, register, length) => {
   return new Promise ((resolve, reject) => {
-    /*  // syncronous i2c read
-    try {
-      const i2c1 = i2c.openSync(1);
-      const buf = Buffer.alloc(length);
-      const bytes = i2c1.i2cReadBlockSync(address, length, register, buf);
-      console.log(bytes);
-      i2c1.closeSync();
-    }
-    catch {return ' error'};
-    */
     const buf = Buffer.alloc(length); 
     const result = {};
     i2c.openPromisified(1).
@@ -66,8 +55,6 @@ const i2cRead = (address, register, length) => {
   });
 };
 
-
-
 const server = http.createServer((req, res) => {
   const pathname = url.parse(req.url).pathname;
   console.log("request for " + pathname + " received.");
@@ -82,7 +69,7 @@ const server = http.createServer((req, res) => {
       handleMotorHMIrequest(req, res, pathname);  
       break;
     case "cameraHMI": 
-      //handleCameraHMIrequest(req, res, pathname);  
+      handleCameraHMIrequest(req, res, pathname);  
       break;
     default:
   }
@@ -102,21 +89,8 @@ const handlePiHMIrequest = (req, res, pathname) => {
         data += chunk;
       });
       req.on('end', () => {
-	obj = JSON.parse(data);
+	      obj = JSON.parse(data);
         switch (obj.command) {
-          case 'cam-restart': {
-            console.log('payload contains command to restart camera');
-            res.writeHead(200, {'Content-Type': 'text/plain'});
-            res.write('cam restart');
-            res.end();            
-            try {
-              exec('sudo systemctl restart stream.service');
-              exec('libcamera-vid -t 0 -n --width 1080 --height 1920 -b 10000000 --framerate 10 --codec mjpeg --inline --listen -o tcp://192.168.0.83:1234');
-              console.log('camera stream restarting');              
-            }
-            catch {console.log('camera restart failed')};
-	          break;
-  	      }
           case 'pi-reboot': {
             console.log('payload contains command to reboot pi');
             res.writeHead(200, {'Content-Type': 'text/plain'});
@@ -125,20 +99,12 @@ const handlePiHMIrequest = (req, res, pathname) => {
             exec('sudo reboot');
             break;
           }
-          case 'i2c': {
-            console.log('payload contains i2c command');
-            res.writeHead(200, {'Content-Type': 'text/plain'});
-            res.write('pi i2c');   
-            const buf = Buffer.alloc(2);         
-            res.end(i2cRead(0x28, 0x04, 2, buf));
-            break;
-          }
-	  default: {
+	        default: {
             res.writeHead(200, {'Content-Type': 'text/plain'});
             res.write('bad request');
             res.end();
-	    break;
-	  }
+	          break;
+	        }
         }
       });
     }
@@ -157,7 +123,6 @@ const handlePiHMIrequest = (req, res, pathname) => {
       res.end();
     })
   }
-
 }
 
 const handleMotorHMIrequest = (req, res, pathname) => {
@@ -176,8 +141,6 @@ const handleMotorHMIrequest = (req, res, pathname) => {
           const register = parseInt(obj["register"]);
           const objData = obj["data"];
           console.log(objData);
-          //const data = [];
-          //for (let i in rawData) {data[i] = rawData[i]};
           let result = {};
           result = await i2cWrite(address, register, objData);
           res.writeHead(200, {'Content-Type': 'text/plain'});
@@ -229,6 +192,57 @@ const handleMotorHMIrequest = (req, res, pathname) => {
   }
   else if (pathname == "/motorHMI/motorHMIfunctions.js") {
     fs.readFile('motorHMI/motorHMIfunctions.js', function(err, data) {
+      res.writeHead(200, {'Content-Type': 'text/javascript'});
+      res.write(data);
+      res.end();
+    })
+  }
+}
+
+const handleCameraHMIrequest = (req, res, pathname) => {
+  if(pathname == "/cameraHMI") {
+    if (req.method == 'POST') {
+      console.log('request method is POST');
+      let data = '';
+      req.on('data', chunk => {
+        data += chunk;
+      });
+      req.on('end', () => {
+	      obj = JSON.parse(data);
+        switch (obj.command) {
+          case 'cam-restart': {
+            console.log('payload contains command to restart camera');
+            res.writeHead(200, {'Content-Type': 'text/plain'});
+            res.write('cam restart');
+            res.end();            
+            try {
+              exec('sudo systemctl restart stream.service');
+              exec(' ');
+              exec('libcamera-vid -t 0 -n --width 1080 --height 1920 -b 10000000 --framerate 10 --codec mjpeg --inline --listen -o tcp://192.168.0.83:1234');
+              console.log('camera stream restarting');              
+            }
+            catch {console.log('camera restart failed')};
+	          break;
+  	      }
+	        default: {
+            res.writeHead(200, {'Content-Type': 'text/plain'});
+            res.write('bad request');
+            res.end();
+	          break;
+	        }
+        }
+      });
+    }
+    else {
+      fs.readFile('cameraHMI/cameraHMI.html', function(err, data) {
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.write(data);
+        res.end();
+      });
+    }
+  }
+  else if (pathname == "/cameraHMI/cameraHMIfunctions.js") {
+    fs.readFile('cameraHMI/cameraHMIfunctions.js', function(err, data) {
       res.writeHead(200, {'Content-Type': 'text/javascript'});
       res.write(data);
       res.end();
