@@ -216,9 +216,9 @@ const handleCameraHMIrequest = (req, res, pathname) => {
             res.write('cam restart');
             res.end();            
             try {
-              exec('sudo systemctl restart stream.service');
-              exec(' ');
-              exec('libcamera-vid -t 0 -n --width 1080 --height 1920 -b 10000000 --framerate 10 --codec mjpeg --inline --listen -o tcp://192.168.0.83:1234');
+              exec('sudo systemctl restart camera-stream.service');
+              //exec(' ');
+              //exec('libcamera-vid -t 0 -n --width 1080 --height 1920 -b 10000000 --framerate 10 --codec mjpeg --inline --listen -o tcp://0.0.0.0:1234');
               console.log('camera stream restarting');              
             }
             catch {console.log('camera restart failed')};

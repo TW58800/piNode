@@ -1,0 +1,11 @@
+sudo apt install nodejs;
+sudo apt install npm;
+cd piNode;
+npm install;
+sudo chmod 644 /home/pi/piNode/services/camera-stream.service;
+sudo chmod 644 /home/pi/piNode/services/piNode.service;
+sudo cp services/camera-stream.service /lib/systemd/system;
+sudo cp services/piNode.service /lib/systemd/system;
+sudo systemctl daemon-reload;
+sudo systemctl enable camera-stream.service;
+sudo systemctl enable piNode.service
