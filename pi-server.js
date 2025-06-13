@@ -5,7 +5,7 @@ const http = require('http');
 const url = require("url");
 var exec = require('child_process').exec;
 const i2c = require('i2c-bus');
-const Gpio = require('onoff').Gpio;
+var Gpio = require('onoff').Gpio;
 
 const i2cWrite = (address, register, data) => {
   return new Promise ((resolve, reject) => {
@@ -259,50 +259,51 @@ const handleGpioHMIrequest = (req, res, pathname) => {
   if(pathname == "/gpioHMI") {
     if (req.method == 'POST') {
       console.log('request method is POST');
-      let data = '';
+      let payload = '';
       req.on('data', chunk => {
-        data += chunk;
+        payload += chunk;
       });
       req.on('end', () => {
-	      obj = JSON.parse(data);
+        obj = JSON.parse(payload);
         switch (obj.command) {
           case 'on': {
-            console.log('payload contains command to switch on gpio pin');
+            console.log('payload contains command to switch on gpio' + obj.data + ' pin');
             res.writeHead(200, {'Content-Type': 'text/plain'});
-            res.write('on');
+            res.write('gpio on');
             res.end();            
             try {
-              var LED = new Gpio(4, 'out'); //use GPIO pin 4, and specify that it is output
-              LED.writeSync(1); //set pin state to 1 (turn LED on)
-              LED.unexport(); // Unexport GPIO to free resources
+              var GPIO = new Gpio(obj.data, 'out');
+              GPIO.writeSync(1); // set pin state to 1 (turn on)
+              GPIO.unexport(); // unexport GPIO to free resources
               console.log('gpio on');              
             }
-            catch {console.log('camera restart failed')};
-	          break;
-  	      }
+            catch {console.log('gpio request failed')};
+            break;
+          }
           case 'off': {
-            console.log('payload contains command to switch off gpio pin');
+            console.log('payload contains command to switch off gpio' + obj.data + ' pin');
             res.writeHead(200, {'Content-Type': 'text/plain'});
-            res.write('off');
+            res.write('gpio off');
             res.end();            
             try {
-              var LED = new Gpio(4, 'out'); //use GPIO pin 4, and specify that it is output
-              LED.writeSync(0); //set pin state to 1 (turn LED on)
-              LED.unexport(); // Unexport GPIO to free resources
+              var GPIO = new Gpio(obj.data, 'out');
+              GPIO.writeSync(0); // set pin state to 0 (turn off)
+              GPIO.unexport(); // unexport GPIO to free resources
               console.log('gpio off');              
             }
-            catch {console.log('camera restart failed')};
-	          break;
-  	      }
-	        default: {
+            catch {console.log('gpio request failed')};
+            break;
+          }
+          default: {
             res.writeHead(200, {'Content-Type': 'text/plain'});
             res.write('bad request');
             res.end();
-	          break;
-	        }
+            break;
+          }
         }
       });
-    }
+    } 
+
     else {
       fs.readFile('gpioHMI/gpioHMI.html', function(err, data) {
         res.writeHead(200, {'Content-Type': 'text/html'});
