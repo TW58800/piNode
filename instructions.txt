@@ -1,11 +1,28 @@
+sudo apt install samba;
+sudo nano /etc/samba/smb.conf;
+
+"add at bottom of file"
+[pi]
+path = /home/pi
+writeable = yes
+browseable = yes
+public = no
+
+sudo smbpasswd -a pi;
+"New SMB password:" ----#---
+sudo systemctl restart smbd;
+
 sudo apt install nodejs;
 sudo apt install npm;
 cd piNode;
 npm install;
 sudo chmod 644 /home/pi/piNode/services/camera-stream.service;
 sudo chmod 644 /home/pi/piNode/services/piNode.service;
+sudo chmod 644 /home/pi/piNode/services/ip2serial_comms.service;
 sudo cp services/camera-stream.service /lib/systemd/system;
 sudo cp services/piNode.service /lib/systemd/system;
+sudo cp services/ip2serial_comms.service /lib/systemd/system;
 sudo systemctl daemon-reload;
 sudo systemctl enable camera-stream.service;
-sudo systemctl enable piNode.service
+sudo systemctl enable piNode.service;
+sudo systemctl enable ip2serial_comms.service;

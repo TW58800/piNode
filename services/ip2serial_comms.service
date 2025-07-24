@@ -1,0 +1,19 @@
+[Unit]
+Description=ip2serial_comms service
+After=network.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python /home/pi/piNode/services/ip2serial_comms.py
+WorkingDirectory=/home/pi/piNode/services
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+Group=root
+#RestartSec=10s
+#KillMode=process
+#TimeoutSec=infinity
+
+[Install]
+WantedBy=multi-user.target

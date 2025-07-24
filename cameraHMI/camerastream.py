@@ -1,4 +1,4 @@
-#import os, time
+import os, time
 
 #cmd = "libcamera-vid -t 0 -n --width 1920 --height 1080 -b 10000000 --framerate 10 --codec mjpeg --inline --listen -o tcp://192.168.0.83:1234"
 #os.system(cmd)
@@ -8,6 +8,16 @@ import socket
 import time
 from picamera2 import Picamera2, Preview
 import time
+from picamera2.outputs import FileOutput
+from picamera2.encoders import JpegEncoder  # H264Encoder
+encoder = JpegEncoder(q=70)  # H264Encoder()
+
+""" pasted from piautofocus.py
+with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+  sock.connect(('0.0.0.0', 1234))
+  stream = sock.makefile("wb")
+  output = FileOutput(stream)
+"""
 
 #import logging
 
@@ -29,9 +39,12 @@ def cameraStream():
         # Accept a single connection and make a file-like object out of it
         while (True):
             connection = server_socket.accept()[0].makefile('wb')
+            #connection, addr = server_socket.accept()
+            print(f"connected by {connection}\n")
             #logger.info('{}: connection made'.format(count))
+            output = FileOutput(connection)
             try:
-                camera.start_recording(connection, format='mjpeg')
+                camera.start_recording(encoder, output)
                 #logger.info('{}: recording started, runtime 24 hours'.format(count))   
                 time.sleep(86400)                          
                 #logger.info('{}: 24 hours elapsed'.format(count))  
